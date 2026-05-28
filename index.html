@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประเมินความเสี่ยงสุขภาพลูกจ้างจากสารเคมีอันตราย (สสปท.)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #18bc9c;
+            --dark: #34495e;
+            --light: #ecf0f1;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ecc71;
+        }
+        body { font-family: 'Cordia New', 'Segoe UI', Tahoma, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; font-size: 18px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h2, h3, h4 { color: var(--primary); margin-top: 0; font-weight: bold; }
+        h1 { border-bottom: 3px solid var(--primary); padding-bottom: 10px; text-align: center; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
+        .card { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 6px; background-color: #fdfdfd; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+        .form-group label { font-weight: bold; margin-bottom: 5px; color: var(--dark); }
+        .form-group input, .form-group select, .form-group textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        .form-group input[readonly] { background-color: #e9ecef; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #bdc3c7; padding: 12px 8px; text-align: center; vertical-align: middle; }
+        th { background-color: var(--primary); color: white; font-weight: normal; }
+        .risk-5 { background-color: #7f8c8d; color: white; } /* ยอมรับไม่ได้ */
+        .risk-high { background-color: var(--danger); color: white; font-weight: bold; }
+        .risk-med { background-color: var(--warning); color: white; font-weight: bold; }
+        .risk-low { background-color: var(--success); color: white; font-weight: bold; }
+        .btn { display: inline-block; background-color: var(--primary); color: white; padding: 10px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background-color: var(--dark); }
+        .btn-success { background-color: var(--secondary); }
+        .btn-success:hover { background-color: #128f76; }
+        .action-zone { margin-top: 20px; background: #fff3cd; padding: 20px; border-left: 6px solid var(--warning); border-radius: 4px; display: none; }
+        .reference-box { background-color: #eef2f7; padding: 15px; border-radius: 6px; font-size: 14px; margin-top: 15px; border: 1px solid #d6dbdf; }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            .no-print { display: none !important; }
+            .card { border: none; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><span class="no-print">ระบบInteractive</span> แบบการประเมินความเสี่ยงสุขภาพของลูกจ้างในกรณีใช้สารเคมีอันตราย</h1>
+    <p style="text-align: center; font-style: italic;">อ้างอิง คู่มือการประเมินความเสี่ยงสุขภาพลูกจ้าง ในกรณีใช้สารเคมีอันตราย สสปท. 2-4-02-01-00-2564</p>
+
+    <div class="card">
+        <h4>[ส่วนหัวฟอร์ม] ข้อมูลทั่วไปสถานประกอบกิจการ</h4>
+        <div class="grid-3">
+            <div class="form-group"><label>ชื่อสถานประกอบกิจการ</label><input type="text" id="comp_name" value="ใส่ชื่อบริษัทฯ"></div>
+            <div class="form-group"><label>พื้นที่ / หน่วยงาน / แผนกการทำงาน</label><input type="text" id="dept_name" value="ใส่แผนกที่ประเมิน"></div>
+            <div class="form-group"><label>กลุ่มที่สัมผัสคล้ายกัน (SEGs)</label><input type="text" id="seg_name" placeholder="เช่น เจ้าหน้าที่ห้องแล็บกลุ่มที่ 1"></div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group"><label>ชื่อผู้ประเมินความเสี่ยง</label><input type="text" id="assessor" placeholder="ระบุชื่อ-นามสกุล"></div>
+            <div class="form-group"><label>วันที่ดำเนินการประเมิน</label><input type="date" id="assess_date"></div>
+            <div class="form-group"><label>ผู้รับรองความเสี่ยง</label><input type="text" id="approver" placeholder="ระบุชื่อผู้รับรอง"></div>
+        </div>
+    </div>
+
+    <div class="card no-print" style="border-top: 4px solid var(--secondary);">
+        <h4>[คำนวณอัตโนมัติ] ระบุพารามิเตอร์การตรวจประเมินตาม SDS </h4>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>1. ชื่อสารเคมีอันตราย</label>
+                <input type="text" id="chem_name" placeholder="เช่น Toluene, Benzene">
+            </div>
+            <div class="form-group">
+                <label>2. ตำแหน่งงาน / กิจกรรม</label>
+                <input type="text" id="job_title" placeholder="เช่น บันทึกผลการกลั่น, ผสมสาร">
+            </div>
+            <div class="form-group">
+                <label>3. ประเภทผลกระทบต่อสุขภาพ</label>
+                <select id="health_effect">
+                    <option value="ความเป็นพิษเฉียบพลัน">ความเป็นพิษเฉียบพลัน (Acute Toxicity)</option>
+                    <option value="กัดกร่อน/ระคายเคืองต่อผิวหนังหรือดวงตา">กัดกร่อน/ระคายเคืองต่อผิวหนังหรือดวงตา</option>
+                    <option value="การก่อกลายพันธุ์/ก่อมะเร็ง/พิษต่อระบบสืบพันธุ์">การก่อกลายพันธุ์ / ก่อมะเร็ง / พิษต่อระบบสืบพันธุ์</option>
+                    <option value="เป็นพิษต่อระบบอวัยวะเป้าหมาย">เป็นพิษต่อระบบอวัยวะเป้าหมาย (STOT)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>4. รหัสความเป็นอันตราย GHS (H-Statement)</label>
+                <select id="h_statement" onchange="runLiveLogic()">
+                    <option value="">-- กรุณาเลือกรหัส H-Code ตาม SDS --</option>
+                    <optgroup label="ระดับอันตราย 5 (อันตรายร้ายแรงมากที่สุด)">
+                        <option value="H330">H330: ตายเมื่อสูดดม (Fatal if inhaled)</option>
+                        <option value="H300">H300: ตายเมื่อกลืนกิน (Fatal if swallowed)</option>
+                        <option value="H310">H310: ตายเมื่อสัมผัสผิวหนัง (Fatal in contact with skin)</option>
+                        <option value="H340">H340: อาจก่อให้เกิดความผิดปกติทางพันธุกรรม</option>
+                        <option value="H350">H350: อาจก่อให้เกิดมะเร็ง (May cause cancer)</option>
+                        <option value="H360">H360: อาจเกิดอันตรายต่อการเจริญพันธุ์หรือทารกในครรภ์</option>
+                        <option value="H370">H370: ทำลายอวัยวะเมื่อรับสัมผัส</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 4 (อันตรายร้ายแรงมาก)">
+                        <option value="H331">H331: เป็นพิษเมื่อสูดดม (Toxic if inhaled)</option>
+                        <option value="H301">H301: เป็นพิษเมื่อกลืนกิน (Toxic if swallowed)</option>
+                        <option value="H311">H311: เป็นพิษเมื่อสัมผัสผิวหนัง (Toxic in contact with skin)</option>
+                        <option value="H341">H341: สงสัยว่าอาจก่อให้เกิดความผิดปกติทางพันธุกรรม</option>
+                        <option value="H351">H351: สงสัยว่าอาจก่อให้เกิดมะเร็ง</option>
+                        <option value="H361">H361: สงสัยว่าอาจเกิดอันตรายต่อการเจริญพันธุ์ฯ</option>
+                        <option value="H371">H371: อาจทำลายอวัยวะ</option>
+                        <option value="H372">H372: ทำลายอวัยวะเมื่อรับสัมผัสเป็นเวลานานหรือซ้ำๆ</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 3 (อันตรายร้ายแรง)">
+                        <option value="H332">H332: เป็นอันตรายเมื่อสูดดม (Harmful if inhaled)</option>
+                        <option value="H302">H302: เป็นอันตรายเมื่อกลืนกิน (Harmful if swallowed)</option>
+                        <option value="H312">H312: เป็นอันตรายเมื่อสัมผัสผิวหนัง</option>
+                        <option value="H304">H304: อาจเป็นอันตรายถึงตายเมื่อกลืนกินและผ่านเข้าไปในทางเดินหายใจ</option>
+                        <option value="H314">H314: ผิวหนังไหม้อย่างรุนแรงและทำลายดวงตา</option>
+                        <option value="H317">H317: อาจทำให้ผิวหนังเกิดการแพ้</option>
+                        <option value="H318">H318: ทำลายดวงตาอย่างรุนแรง</option>
+                        <option value="H334">H334: อาจก่อให้เกิดการแพ้หรืออาการหอบหืดเมื่อสูดดม</option>
+                        <option value="H335">H335: อาจระคายเคืองต่อทางเดินหายใจ</option>
+                        <option value="H373">H373: อาจทำลายอวัยวะเมื่อรับสัมผัสเป็นเวลานานหรือซ้ำๆ</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 2 (อันตรายปานกลาง)">
+                        <option value="H303">H303: อาจเป็นอันตรายเมื่อกลืนกิน</option>
+                        <option value="H313">H313: อาจเป็นอันตรายเมื่อสัมผัสผิวหนัง</option>
+                        <option value="H333">H333: อาจเป็นอันตรายเมื่อสูดดม</option>
+                        <option value="H305">H305: อาจเป็นอันตรายเมื่อกลืนกินและผ่านเข้าไปในทางเดินหายใจเมื่ออาเจียน</option>
+                        <option value="H315">H315: ระคายเคืองผิวหนังมาก</option>
+                        <option value="H319">H319: ระคายเคืองดวงตาอย่างรุนแรง</option>
+                        <option value="H362">H362: อาจเกิดอันตรายต่อทารกที่เลี้ยงด้วยนมแม่</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 1 (อันตรายน้อย)">
+                        <option value="H316">H316: ระคายเคืองผิวหนังเล็กน้อย</option>
+                        <option value="H320">H320: ระคายเคืองดวงตา</option>
+                        <option value="H336">H336: อาจทำให้ง่วงซึมหรือเวียนศีรษะ</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>5. ระดับความถี่สัมผัส (FR) [ตาราง 7-1]</label>
+                <select id="fr_rate" onchange="runLiveLogic()">
+                    <option value="1">ระดับ 1: นานๆ ครั้ง (&lt; 1 ครั้ง/เดือน)</option>
+                    <option value="2">ระดับ 2: น้อย (1 - 4 ครั้ง/เดือน)</option>
+                    <option value="3">ระดับ 3: ปานกลาง (1 - 4 ครั้ง/สัปดาห์)</option>
+                    <option value="4">ระดับ 4: สูง (ทุกวัน หรือเกือบทุกวัน)</option>
+                    <option value="5">ระดับ 5: สูงมาก (ตลอดเวลาที่ทำงาน)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>6. ระดับระยะเวลาสัมผัส (DR) [ตาราง 7-2]</label>
+                <select id="dr_rate" onchange="runLiveLogic()">
+                    <option value="1">ระดับ 1: &lt; 1 ชั่วโมง/กะ (&lt; 12.5%)</option>
+                    <option value="2">ระดับ 2: 1 - 2 ชั่วโมง/กะ (12.5% - 25%)</option>
+                    <option value="3">ระดับ 3: 2 - 4 ชั่วโมง/กะ (25% - 50%)</option>
+                    <option value="4">ระดับ 4: 4 - 7 ชั่วโมง/กะ (50% - 87.5%)</option>
+                    <option value="5">ระดับ 5: &gt; 7 ชั่วโมง/กะ (&gt; 87.5%)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>7. ระดับความเข้มข้นสารเคมี (MR) [ตาราง 7-3]</label>
+                <select id="mr_rate" onchange="runLiveLogic()">
+                    <option value="1">ระดับ 1: ต่ำมาก (&lt; 10% ของค่า OEL)</option>
+                    <option value="2">ระดับ 2: ต่ำ (10% - 50% ของค่า OEL)</option>
+                    <option value="3">ระดับ 3: ปานกลาง (50% - 100% ของค่า OEL)</option>
+                    <option value="4">ระดับ 4: สูง (&gt; 100% ของ OEL แต่ไม่เกิน 5 เท่า)</option>
+                    <option value="5">ระดับ 5: สูงมาก (&gt; 5 เท่าของค่า OEL)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>8. ค่าปรับแก้ไขตามข้อกฎหมาย (ถ้ามี)</label>
+                <input type="number" id="mod_factor" value="0" min="0" max="2" onchange="runLiveLogic()">
+            </div>
+            <div class="form-group">
+                <label style="color: blue;">ผลการประมวลผลด่วน (Live Output)</label>
+                <div id="live_status" style="font-weight: bold; padding: 8px; border-radius: 4px; text-align: center; background: #eee;">กำลังรอข้อมูล...</div>
+            </div>
+        </div>
+
+        <button class="btn btn-success" onclick="pushDataToTable()">➕ บันทึกข้อมูลลงในตาราง</button>
+    </div>
+
+    <div id="action_block" class="action-zone no-print">
+        <h4>🚨 บังคับทางกฎหมาย: มาตรการควบคุมและจัดการความเสี่ยง (เนื่องจากระดับ RR อยู่ในเกณฑ์สูง)</h4>
+        <p>กรุณาระบุมาตรการดำเนินการเพื่อลดความเสี่ยงตามลำดับขั้นความปลอดภัย:</p>
+        <div class="grid-2">
+            <div class="form-group"><label>1. การควบคุมทางวิศวกรรม (Engineering Controls)</label><input type="text" id="ctrl_eng" placeholder="เช่น ติดตั้งระบบระบายอากาศเฉพาะที่ (LEV), ระบบปิด"></div>
+            <div class="form-group"><label>2. การควบคุมทางบริหารจัดการ (Administrative Controls)</label><input type="text" id="ctrl_admin" placeholder="เช่น สลับผลัดเปลี่ยนกะการทำงาน, ติดป้ายเตือน"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label>3. อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE)</label><input type="text" id="ctrl_ppe" placeholder="เช่น หน้ากากกรองสารเคมีแผ่นกรองคาร์บอนตลับคู่"></div>
+            <div class="form-group"><label>4. แผนงานการเฝ้าระวังสุขภาพ (Health Surveillance)</label><input type="text" id="ctrl_surv" placeholder="เช่น การตรวจระดับสารเคมีในปัสสาวะหรือเลือดประจำปี"></div>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <h3>แบบการประเมินความเสี่ยงสุขภาพของลูกจ้างในกรณีใช้สารเคมีอันตราย</h3>
+        <table id="appendix_table">
+            <thead>
+                <tr>
+                    <th rowspan="2">ชื่อสารเคมีอันตราย/แต่ละ SEGs/ตำแหน่งงาน</th>
+                    <th colspan="2">การชี้บ่งอันตราย</th>
+                    <th>ลักษณะอันตราย</th>
+                    <th colspan="5">การประเมินการสัมผัสสารเคมี</th>
+                    <th colspan="2">ลักษณะความเสี่ยง</th>
+                    <th rowspan="2" class="no-print">จัดการ</th>
+                </tr>
+                <tr>
+                    <th>ประเภทผลกระทบต่อสุขภาพ</th>
+                    <th>รหัสข้อมูลความเป็นอันตราย (H-Phases)</th>
+                    <th>ระดับอันตรายตามลักษณะสารเคมี (HR)</th>
+                    <th>ระดับความถี่สัมผัส (FR)</th>
+                    <th>ระดับระยะเวลาสัมผัส (DR)</th>
+                    <th>ระดับความเข้มข้น (MR)</th>
+                    <th>ค่าปรับแก้ไข (ถ้ามี)</th>
+                    <th>ระดับการสัมผัสสารเคมีอันตราย (ER)</th>
+                    <th>ระดับความเสี่ยง (RR)</th>
+                    <th>ประเภทความเสี่ยง / มาตรการจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 20px; text-align: right;" class="no-print">
+        <button class="btn" style="background-color: #95a5a6;" onclick="window.print()">🖨️ พิมพ์เอกสาร (ออกรายงานทางกฎหมาย PDF)</button>
+    </div>
+</div>
+
+<script>
+    // ฐานข้อมูลแมป GHS H-Statement ไปยัง ระดับความรุนแรงของอันตราย (HR) แบบครบถ้วนตามคู่มือบทที่ 6
+    const ghsDatabase = {
+        // HR 5
+        "H330": 5, "H300": 5, "H310": 5, "H340": 5, "H350": 5, "H360": 5, "H370": 5,
+        // HR 4
+        "H331": 4, "H301": 4, "H311": 4, "H341": 4, "H351": 4, "H361": 4, "H371": 4, "H372": 4,
+        // HR 3
+        "H332": 3, "H302": 3, "H312": 3, "H304": 3, "H314": 3, "H317": 3, "H318": 3, "H334": 3, "H335": 3, "H373": 3,
+        // HR 2
+        "H303": 2, "H313": 2, "H333": 2, "H305": 2, "H315": 2, "H319": 2, "H362": 2,
+        // HR 1
+        "H316": 1, "H320": 1, "H336": 1
+    };
+
+    // ตารางประเมินผลกระทบร่วม Rating Matrix 5x5 เพื่อหาระดับการสัมผัส (ER) [ตารางที่ 7-7]
+    // แกนตั้ง = ระดับโอกาสสัมผัส (Max ของ FR หรือ DR), แกนนอน = ระดับความเข้มข้น (MR)
+    const erMatrix = [
+        [0, 0, 0, 0, 0, 0], // แถวสำรองดัชนี 0
+        [0, 1, 1, 2, 3, 4], // โอกาสสัมผัส = 1
+        [0, 1, 2, 3, 4, 5], // โอกาสสัมผัส = 2
+        [0, 2, 3, 3, 4, 5], // โอกาสสัมผัส = 3
+        [0, 3, 4, 4, 5, 5], // โอกาสสัมผัส = 4
+        [0, 4, 5, 5, 5, 5]  // โอกาสสัมผัส = 5
+    ];
+
+    // ฟังก์ชันประมวลผลตรรกะแบบเรียลไทม์
+    function runLiveLogic() {
+        const hCode = document.getElementById("h_statement").value;
+        const fr = parseInt(document.getElementById("fr_rate").value);
+        const dr = parseInt(document.getElementById("dr_rate").value);
+        const mr = parseInt(document.getElementById("mr_rate").value);
+        const mod = parseInt(document.getElementById("mod_factor").value) || 0;
+
+        if (!hCode) {
+            document.getElementById("live_status").innerHTML = "กรุณาเลือกรหัส H-Statement";
+            document.getElementById("live_status").style.backgroundColor = "#eee";
+            document.getElementById("live_status").style.color = "#333";
+            return { hr: 0, er: 0, rr: 0 };
+        }
+
+        // 1. ระดับอันตราย (HR)
+        const hr = ghsDatabase[hCode];
+
+        // 2. ระดับโอกาสการสัมผัส (หาค่าสูงสุดระหว่างความถี่ FR และ ระยะเวลา DR)
+        const exposure_probability = Math.max(fr, dr);
+
+        // 3. คำนวณหาค่าระดับการสัมผัสขั้นต้น (ER) จาก Matrix 5x5
+        let base_er = erMatrix[exposure_probability][mr];
+
+        // 4. บวกรวมค่าปรับแก้ไขทางกฎหมาย (Modifying Factor) แต่สูงสุดต้องไม่เกินระดับ 5
+        let final_er = Math.min(5, base_er + mod);
+
+        // 5. คำนวณระดับความเสี่ยง (Risk Rating: RR) = HR x ER
+        const rr = hr * final_er;
+
+        // แสดงผลลัพธ์ด่วนทางหน้าจอ
+        const target = document.getElementById("live_status");
+        target.innerHTML = `HR: ${hr} | ER: ${final_er} | RR: ${rr}`;
+
+        if (rr >= 15) {
+            target.style.backgroundColor = "#e74c3c"; target.style.color = "white";
+            document.getElementById("action_block").style.display = "block"; // เปิดกรอกมาตรการควบคุม
+        } else if (rr >= 8) {
+            target.style.backgroundColor = "#f39c12"; target.style.color = "white";
+            document.getElementById("action_block").style.display = "block";
+        } else {
+            target.style.backgroundColor = "#2ecc71"; target.style.color = "white";
+            document.getElementById("action_block").style.display = "none";
+        }
+
+        return { hr, er: final_er, rr };
+    }
+
+    // ฟังก์ชันผลักข้อมูลเข้าสู่ตารางบันทึกผลทางกฎหมาย (ตาราง ง.2)
+    function pushDataToTable() {
+        const chem = document.getElementById("chem_name").value.trim();
+        const job = document.getElementById("job_title").value.trim();
+        const effect = document.getElementById("health_effect").value;
+        const hCode = document.getElementById("h_statement").value;
+        
+        const fr = document.getElementById("fr_rate").value;
+        const dr = document.getElementById("dr_rate").value;
+        const mr = document.getElementById("mr_rate").value;
+        const mod = document.getElementById("mod_factor").value;
+
+        if(!chem || !hCode) {
+            alert("⚠️ ผิดพลาด: กรุณากรอกชื่อสารเคมีและระบุรหัสความรุนแรงตาม GHS ก่อนกดบันทึก!");
+            return;
+        }
+
+        // เรียกเอาผลลัพธ์จากฟังก์ชันคำนวณหลัก
+        const logic = runLiveLogic();
+
+        // ตรวจสอบมาตรการจัดการ
+        let managementText = "ยอมรับความเสี่ยงได้ (ควบคุมตามมาตรฐานเดิม)";
+        let rowColorClass = "risk-low";
+
+        if(logic.rr >= 15) {
+            rowColorClass = "risk-high";
+            managementText = `<b>[เสี่ยงสูงมาก]</b> ต้องทำแผนลดความเสี่ยงทันที:<br>` +
+                             `1. ทางวิศวกรรม: ${document.getElementById("ctrl_eng").value || "ไม่ระบุ"}<br>` +
+                             `2. บริหารจัดการ: ${document.getElementById("ctrl_admin").value || "ไม่ระบุ"}<br>` +
+                             `3. อุปกรณ์ PPE: ${document.getElementById("ctrl_ppe").value || "ไม่ระบุ"}<br>` +
+                             `4. เฝ้าระวัง: ${document.getElementById("ctrl_surv").value || "ไม่ระบุ"}`;
+        } else if (logic.rr >= 8) {
+            rowColorClass = "risk-med";
+            managementText = `<b>[เสี่ยงปานกลาง]</b> ทบทวนมาตรการและเฝ้าระวังอวัยวะเป้าหมาย:<br>` +
+                             `- ทางวิศวกรรม/PPE: ${document.getElementById("ctrl_eng").value || "รักษามาตรฐานเดิม"}`;
+        }
+
+        const tbody = document.getElementById("appendix_table").getElementsByTagName("tbody")[0];
+        const newRow = tbody.insertRow();
+
+        newRow.innerHTML = `
+            <td><b>${chem}</b><br><small>งาน: ${job}</small></td>
+            <td>${effect}</td>
+            <td><code>${hCode}</code></td>
+            <td><b>${logic.hr}</b></td>
+            <td>${fr}</td>
+            <td>${dr}</td>
+            <td>${mr}</td>
+            <td>+${mod}</td>
+            <td><b>${logic.er}</b></td>
+            <td class="${rowColorClass}"><b>${logic.rr}</b></td>
+            <td style="text-align: left; font-size:14px;">${managementText}</td>
+            <td class="no-print"><button onclick="this.closest('tr').remove();" style="color:red; cursor:pointer; border:1px solid red; background:none; border-radius:3px;">ลบ</button></td>
+        `;
+
+        // ล้างข้อมูลอินพุตพร้อมสำหรับรายการถัดไป
+        document.getElementById("chem_name").value = "";
+        document.getElementById("job_title").value = "";
+        document.getElementById("ctrl_eng").value = "";
+        document.getElementById("ctrl_admin").value = "";
+        document.getElementById("ctrl_ppe").value = "";
+        document.getElementById("ctrl_surv").value = "";
+    }
+
+    // กำหนดวันที่ปัจจุบันในแบบฟอร์มตอนเปิดใช้งานแอปพลิเคชัน
+    document.getElementById('assess_date').valueAsDate = new Date();
+</script>
+
+</body>
+</html>

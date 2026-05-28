@@ -28,7 +28,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         th, td { border: 1px solid #bdc3c7; padding: 12px 8px; text-align: center; vertical-align: middle; }
         th { background-color: var(--primary); color: white; font-weight: normal; }
-        .risk-5 { background-color: #7f8c8d; color: white; } /* ยอมรับไม่ได้ */
+        .risk-5 { background-color: #7f8c8d; color: white; font-weight: bold; } /* ยอมรับไม่ได้ */
         .risk-high { background-color: var(--danger); color: white; font-weight: bold; }
         .risk-med { background-color: var(--warning); color: white; font-weight: bold; }
         .risk-low { background-color: var(--success); color: white; font-weight: bold; }
@@ -38,6 +38,12 @@
         .btn-success:hover { background-color: #128f76; }
         .action-zone { margin-top: 20px; background: #fff3cd; padding: 20px; border-left: 6px solid var(--warning); border-radius: 4px; display: none; }
         .reference-box { background-color: #eef2f7; padding: 15px; border-radius: 6px; font-size: 14px; margin-top: 15px; border: 1px solid #d6dbdf; }
+        
+        /* เพิ่มสไตล์ส่งเสริมความสมบูรณ์แบบในการแสดงผลและการพิมพ์รายงาน */
+        #appendix_table tr { page-break-inside: avoid; page-break-after: auto; }
+        #appendix_table tbody tr:hover { background-color: #f9f9f9; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 5px rgba(24, 188, 156, 0.3); }
+
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; max-width: 100%; padding: 0; }
@@ -100,6 +106,11 @@
                         <option value="H340">H340: อาจก่อให้เกิดความผิดปกติทางพันธุกรรม</option>
                         <option value="H350">H350: อาจก่อให้เกิดมะเร็ง (May cause cancer)</option>
                         <option value="H360">H360: อาจเกิดอันตรายต่อการเจริญพันธุ์หรือทารกในครรภ์</option>
+                        <option value="H360F">H360F: อาจเกิดอันตรายต่อการเจริญพันธุ์ (May damage fertility)</option>
+                        <option value="H360D">H360D: อาจเกิดอันตรายต่อทารกในครรภ์ (May damage the unborn child)</option>
+                        <option value="H360FD">H360FD: อาจเกิดอันตรายต่อการเจริญพันธุ์และทารกในครรภ์</option>
+                        <option value="H360Fd">H360Fd: อาจเกิดอันตรายต่อการเจริญพันธุ์ และสงสัยว่าฯ</option>
+                        <option value="H360Df">H360Df: อาจเกิดอันตรายต่อทารกในครรภ์ และสงสัยว่าฯ</option>
                         <option value="H370">H370: ทำลายอวัยวะเมื่อรับสัมผัส</option>
                     </optgroup>
                     <optgroup label="ระดับอันตราย 4 (อันตรายร้ายแรงมาก)">
@@ -109,6 +120,9 @@
                         <option value="H341">H341: สงสัยว่าอาจก่อให้เกิดความผิดปกติทางพันธุกรรม</option>
                         <option value="H351">H351: สงสัยว่าอาจก่อให้เกิดมะเร็ง</option>
                         <option value="H361">H361: สงสัยว่าอาจเกิดอันตรายต่อการเจริญพันธุ์ฯ</option>
+                        <option value="H361f">H361f: สงสัยว่าอาจเกิดอันตรายต่อการเจริญพันธุ์</option>
+                        <option value="H361d">H361d: สงสัยว่าอาจเกิดอันตรายต่อทารกในครรภ์</option>
+                        <option value="H361fd">H361fd: สงสัยว่าอาจเกิดอันตรายต่อการเจริญพันธุ์และทารกฯ</option>
                         <option value="H371">H371: อาจทำลายอวัยวะ</option>
                         <option value="H372">H372: ทำลายอวัยวะเมื่อรับสัมผัสเป็นเวลานานหรือซ้ำๆ</option>
                     </optgroup>
@@ -225,22 +239,28 @@
                 </tr>
             </thead>
             <tbody>
-                </tbody>
+            </tbody>
         </table>
     </div>
 
-    <div style="margin-top: 20px; text-align: right;" class="no-print">
+    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;" class="no-print">
+        <div>
+            <button class="btn" style="background-color: #34495e; margin-right: 10px;" onclick="loadDemoData()">💡 โหลดข้อมูลตัวอย่างอ้างอิง</button>
+            <button class="btn" style="background-color: #e74c3c;" onclick="clearAllTable()">🗑️ ล้างตารางทั้งหมด</button>
+        </div>
         <button class="btn" style="background-color: #95a5a6;" onclick="window.print()">🖨️ พิมพ์เอกสาร (ออกรายงานทางกฎหมาย PDF)</button>
     </div>
 </div>
 
 <script>
-    // ฐานข้อมูลแมป GHS H-Statement ไปยัง ระดับความรุนแรงของอันตราย (HR) แบบครบถ้วนตามคู่มือบทที่ 6
+    // ฐานข้อมูลแมป GHS H-Statement ไปยัง ระดับความรุนแรงของอันตราย (HR) แบบครบถ้วนตามคู่มือบทที่ 6 (ขยายครอบคลุมรหัสย่อย)
     const ghsDatabase = {
         // HR 5
         "H330": 5, "H300": 5, "H310": 5, "H340": 5, "H350": 5, "H360": 5, "H370": 5,
+        "H360F": 5, "H360D": 5, "H360FD": 5, "H360Fd": 5, "H360Df": 5,
         // HR 4
         "H331": 4, "H301": 4, "H311": 4, "H341": 4, "H351": 4, "H361": 4, "H371": 4, "H372": 4,
+        "H361f": 4, "H361d": 4, "H361fd": 4,
         // HR 3
         "H332": 3, "H302": 3, "H312": 3, "H304": 3, "H314": 3, "H317": 3, "H318": 3, "H334": 3, "H335": 3, "H373": 3,
         // HR 2
@@ -294,7 +314,11 @@
         const target = document.getElementById("live_status");
         target.innerHTML = `HR: ${hr} | ER: ${final_er} | RR: ${rr}`;
 
-        if (rr >= 15) {
+        // เพิ่มการเชื่อมโยงการแสดงผลร่วมกับคลาสสี .risk-5 (ยอมรับไม่ได้) เมื่อ RR >= 20
+        if (rr >= 20) {
+            target.style.backgroundColor = "#7f8c8d"; target.style.color = "white"; // สีของ .risk-5
+            document.getElementById("action_block").style.display = "block";
+        } else if (rr >= 15) {
             target.style.backgroundColor = "#e74c3c"; target.style.color = "white";
             document.getElementById("action_block").style.display = "block"; // เปิดกรอกมาตรการควบคุม
         } else if (rr >= 8) {
@@ -332,9 +356,17 @@
         let managementText = "ยอมรับความเสี่ยงได้ (ควบคุมตามมาตรฐานเดิม)";
         let rowColorClass = "risk-low";
 
-        if(logic.rr >= 15) {
+        // แยกขอบเขตมาตรการอย่างครบถ้วน (เปิดใช้งานระดับคลาส .risk-5 และมาตรการตามเกณฑ์ สสปท.)
+        if (logic.rr >= 20) {
+            rowColorClass = "risk-5";
+            managementText = `<b>[ยอมรับไม่ได้]</b> ต้องปรับปรุงกระบวนการหรือหยุดทำงานทันทีเพื่อลดระดับการสัมผัส:<br>` +
+                             `1. ทางวิศวกรรม: ${document.getElementById("ctrl_eng").value || "ไม่ระบุ"}<br>` +
+                             `2. บริหารจัดการ: ${document.getElementById("ctrl_admin").value || "ไม่ระบุ"}<br>` +
+                             `3. อุปกรณ์ PPE: ${document.getElementById("ctrl_ppe").value || "ไม่ระบุ"}<br>` +
+                             `4. เฝ้าระวัง: ${document.getElementById("ctrl_surv").value || "ไม่ระบุ"}`;
+        } else if(logic.rr >= 15) {
             rowColorClass = "risk-high";
-            managementText = `<b>[เสี่ยงสูงมาก]</b> ต้องทำแผนลดความเสี่ยงทันที:<br>` +
+            managementText = `<b>[เสี่ยงสูง]</b> ต้องทำแผนลดความเสี่ยงและดำเนินการทันทีทางกฎหมาย:<br>` +
                              `1. ทางวิศวกรรม: ${document.getElementById("ctrl_eng").value || "ไม่ระบุ"}<br>` +
                              `2. บริหารจัดการ: ${document.getElementById("ctrl_admin").value || "ไม่ระบุ"}<br>` +
                              `3. อุปกรณ์ PPE: ${document.getElementById("ctrl_ppe").value || "ไม่ระบุ"}<br>` +
@@ -360,7 +392,7 @@
             <td><b>${logic.er}</b></td>
             <td class="${rowColorClass}"><b>${logic.rr}</b></td>
             <td style="text-align: left; font-size:14px;">${managementText}</td>
-            <td class="no-print"><button onclick="this.closest('tr').remove();" style="color:red; cursor:pointer; border:1px solid red; background:none; border-radius:3px;">ลบ</button></td>
+            <td class="no-print"><button onclick="this.closest('tr').remove(); saveTableToStorage();" style="color:red; cursor:pointer; border:1px solid red; background:none; border-radius:3px;">ลบ</button></td>
         `;
 
         // ล้างข้อมูลอินพุตพร้อมสำหรับรายการถัดไป
@@ -370,10 +402,108 @@
         document.getElementById("ctrl_admin").value = "";
         document.getElementById("ctrl_ppe").value = "";
         document.getElementById("ctrl_surv").value = "";
+
+        // รีเซ็ตสถานะหน้าจออินเตอร์แอคทีฟสดเพื่อเตรียมคีย์สารต่อไป
+        document.getElementById("live_status").innerHTML = "กำลังรอข้อมูล...";
+        document.getElementById("live_status").style.backgroundColor = "#eee";
+        document.getElementById("live_status").style.color = "#333";
+        document.getElementById("action_block").style.display = "none";
+
+        // บันทึกสถานะตารางลง LocalStorage อัตโนมัติเมื่อมีการเพิ่มรายการ
+        saveTableToStorage();
     }
 
-    // กำหนดวันที่ปัจจุบันในแบบฟอร์มตอนเปิดใช้งานแอปพลิเคชัน
+    // --- ส่วนเสริมความสมบูรณ์ในการบันทึกและอำนวยความสะดวกในการใช้งาน (เพิ่มเติมโดยไม่เปลี่ยนของเดิม) ---
+
+    // 1. ฟังก์ชันจัดเก็บสถานะข้อมูลลง LocalStorage ป้องกันข้อมูลหายเวลา refresh หน้าจอ
+    function saveTableToStorage() {
+        const tbody = document.getElementById("appendix_table").getElementsByTagName("tbody")[0];
+        localStorage.setItem("sspt_chemical_table_data", tbody.innerHTML);
+        
+        // บันทึกฟิลด์หัวฟอร์ม
+        const fields = ["comp_name", "dept_name", "seg_name", "assessor", "assess_date", "approver"];
+        fields.forEach(id => {
+            localStorage.setItem("sspt_field_" + id, document.getElementById(id).value);
+        });
+    }
+
+    // 2. ฟังก์ชันเรียกคืนข้อมูลตารางเดิม
+    function loadTableFromStorage() {
+        const savedData = localStorage.getItem("sspt_chemical_table_data");
+        if(savedData) {
+            document.getElementById("appendix_table").getElementsByTagName("tbody")[0].innerHTML = savedData;
+        }
+        const fields = ["comp_name", "dept_name", "seg_name", "assessor", "assess_date", "approver"];
+        fields.forEach(id => {
+            const savedVal = localStorage.getItem("sspt_field_" + id);
+            if(savedVal) document.getElementById(id).value = savedVal;
+        });
+    }
+
+    // 3. ฟังก์ชันล้างรายการในตารางทั้งหมด
+    function clearAllTable() {
+        if(confirm("🚨 คุณต้องการล้างรายการประเมินความเสี่ยงทั้งหมดในตารางใช่หรือไม่? Data จะถูกลบถาวร")) {
+            document.getElementById("appendix_table").getElementsByTagName("tbody")[0].innerHTML = "";
+            localStorage.removeItem("sspt_chemical_table_data");
+            alert("ล้างข้อมูลตารางเรียบร้อยแล้ว");
+        }
+    }
+
+    // 4. ฟังก์ชันโหลดข้อมูลตัวอย่างอ้างอิงตรงตามโมเดลตัวอย่างของเล่มคู่มือ สสปท.
+    function loadDemoData() {
+        document.getElementById("comp_name").value = "บริษัท อุตสาหกรรมนวัตกรรมเคมีไทย จำกัด";
+        document.getElementById("dept_name").value = "ห้องปฏิบัติการทดสอบและวิเคราะห์ผลิตภัณฑ์";
+        document.getElementById("seg_name").value = "เจ้าหน้าที่ฝ่ายควบคุมคุณภาพและนักวิจัยกลุ่ม 1";
+        document.getElementById("assessor").value = "นายวันดี จงรัก (จป.วิชาชีพระดับวิชาชีพ)";
+        document.getElementById("approver").value = "นายปลอดภัย ขำดี (ผู้ชำนาญการความปลอดภัย)";
+
+        const tbody = document.getElementById("appendix_table").getElementsByTagName("tbody")[0];
+        tbody.innerHTML += `
+            <tr>
+                <td><b>Toluene (โทลูอีน)</b><br><small>งาน: บันทึกผลการกลั่นแยกสารและทำความสะอาด</small></td>
+                <td>เป็นพิษต่อระบบอวัยวะเป้าหมาย (STOT)</td>
+                <td><code>H373</code></td>
+                <td><b>3</b></td>
+                <td>4</td>
+                <td>3</td>
+                <td>3</td>
+                <td>+0</td>
+                <td><b>3</b></td>
+                <td class="risk-med"><b>9</b></td>
+                <td style="text-align: left; font-size:14px;"><b>[เสี่ยงปานกลาง]</b> ทบทวนมาตรการและเฝ้าระวังอวัยวะเป้าหมาย:<br>- ทางวิศวกรรม/PPE: รักษามาตรฐานเดิมและตรวจสอบระบบ Local Exhaust Ventilation สม่ำเสมอ</td>
+                <td class="no-print"><button onclick="this.closest('tr').remove(); saveTableToStorage();" style="color:red; cursor:pointer; border:1px solid red; background:none; border-radius:3px;">ลบ</button></td>
+            </tr>
+            <tr>
+                <td><b>Benzene (เบนซีนบริสุทธิ์)</b><br><small>งาน: เตรียมและหยดสารละลายมาตรฐานความเข้มข้นสูง</small></td>
+                <td>การก่อกลายพันธุ์/ก่อมะเร็ง/พิษต่อระบบสืบพันธุ์</td>
+                <td><code>H350</code></td>
+                <td><b>5</b></td>
+                <td>3</td>
+                <td>2</td>
+                <td>4</td>
+                <td>+1</td>
+                <td><b>5</b></td>
+                <td class="risk-5"><b>25</b></td>
+                <td style="text-align: left; font-size:14px;"><b>[ยอมรับไม่ได้]</b> ต้องปรับปรุงกระบวนการหรือหยุดทำงานทันทีเพื่อลดระดับการสัมผัส:<br>1. ทางวิศวกรรม: ย้ายกระบวนการไปทำในระบบตู้ดูดควันปิดสนิท (Fume Hood) ชนิดเปิดหน้าน้อยที่สุด<br>2. บริหารจัดการ: จำกัดเวลาปฏิบัติงานให้ต่ำกว่า 30 นาที/กะ และติดป้ายเขตเตือนสารก่อมะเร็งรุนแรง<br>3. อุปกรณ์ PPE: บังคับใช้หน้ากากชนิดเต็มหน้า Full-Face Respirator ตลับกรองชนิด Organic Vapor ไส้กรองฝุ่นประสิทธิภาพสูง<br>4. เฝ้าระวัง: ดำเนินการตรวจเฝ้าระวังสุขภาพเฉพาะทางเกี่ยวกับระบบสร้างเม็ดเลือดประจำปีอย่างเคร่งครัด</td>
+                <td class="no-print"><button onclick="this.closest('tr').remove(); saveTableToStorage();" style="color:red; cursor:pointer; border:1px solid red; background:none; border-radius:3px;">ลบ</button></td>
+            </tr>
+        `;
+        saveTableToStorage();
+        alert("💡 โหลดชุดข้อมูลตัวอย่างจำลองตามมาตรฐาน Сhemical Risk Guide ของ สสปท. เรียบร้อยแล้ว! สามารถทดลองพิมพ์หรือแก้ไขต่อได้ทันที");
+    }
+
+    // กำหนดวันที่ปัจจุบันในแบบฟอร์มตอนเปิดใช้งานแแอปพลิเคชัน
     document.getElementById('assess_date').valueAsDate = new Date();
+
+    // รันฟังก์ชันโหลดกลับคืนค่าอัตโนมัติเมื่อเปิดหน้าจอ
+    window.onload = function() {
+        loadTableFromStorage();
+        
+        // ผูก Event ให้ฟิลด์ทั่วไปบันทึกความจำอัตโนมัติ
+        document.querySelectorAll('.card input[type="text"]').forEach(el => {
+            el.addEventListener('input', saveTableToStorage);
+        });
+    };
 </script>
 
 </body>

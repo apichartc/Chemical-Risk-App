@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประเมินความเสี่ยงสุขภาพลูกจ้างจากสารเคมีอันตราย</title>
+    <style>
+        :root {
+            --primary: #1e3a5f; --secondary: #20b2aa; --dark: #2c3e50; --light: #f8f9fa;
+            --danger: #e74c3c; --warning: #f39c12; --success: #2ecc71; --info: #3498db;
+            --border: #dee2e6;
+        }
+        body { font-family: 'Sarabun', 'Cordia New', 'Segoe UI', Tahoma, sans-serif; background-color: #eef2f5; margin: 0; padding: 20px; font-size: 16px; color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        
+        /* Header & Logo Styles */
+        .report-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 25px; }
+        .logo-section { width: 200px; display: flex; flex-direction: column; align-items: flex-start; }
+        .logo-preview { max-width: 100%; max-height: 90px; object-fit: contain; display: none; margin-bottom: 10px; }
+        .title-section { flex: 1; text-align: center; }
+        h1 { color: var(--primary); margin: 0 0 5px 0; font-size: 26px; font-weight: bold; }
+        .subtitle { color: #555; font-style: italic; font-size: 16px; margin: 0; }
+        .spacer { width: 200px; } /* To balance flexbox */
+
+        h3, h4 { color: var(--primary); margin-top: 0; font-weight: bold; border-left: 4px solid var(--secondary); padding-left: 10px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 15px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 15px; }
+        .card { border: 1px solid var(--border); padding: 20px; margin-bottom: 25px; border-radius: 8px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 12px; }
+        .form-group label { font-weight: bold; margin-bottom: 6px; color: var(--dark); font-size: 15px; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--info); outline: none; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+        .form-group input[readonly] { background-color: #e9ecef; font-weight: bold; }
+        
+        .hint-text { font-size: 13px; font-weight: normal; margin-top: 4px; display: block; }
+        .hint-active { color: #198754; font-weight: bold; }
+        .hint-inactive { color: #adb5bd; text-decoration: line-through; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid var(--border); padding: 12px 10px; text-align: center; vertical-align: middle; }
+        th { background-color: var(--primary); color: white; font-weight: 500; }
+        tbody tr:hover { background-color: #f8f9fa; }
+        
+        .risk-high { background-color: var(--danger) !important; color: white !important; font-weight: bold; } 
+        .risk-med { background-color: var(--warning) !important; color: black !important; font-weight: bold; } 
+        .risk-low { background-color: var(--success) !important; color: white !important; font-weight: bold; } 
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; background-color: var(--primary); color: white; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn:hover { background-color: #152b47; transform: translateY(-1px); }
+        .btn-success { background-color: var(--secondary); }
+        .btn-success:hover { background-color: #179b94; }
+        .btn-sm { padding: 6px 12px; font-size: 14px; }
+        
+        .action-zone { margin-top: 20px; background: #fff8e1; padding: 20px; border-left: 5px solid var(--warning); border-radius: 6px; display: none; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: white; font-weight: bold; margin-right: 5px; margin-top: 5px; }
+        .badge-acute { background-color: #d35400; }
+        .badge-chronic { background-color: #6c757d; }
+        .badge-inh { background-color: var(--info); }
+        .badge-der { background-color: var(--secondary); }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; padding: 0; font-size: 12pt; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            .no-print { display: none !important; }
+            .card { border: none; padding: 0; margin-bottom: 15px; }
+            th, td { border: 1px solid #000; padding: 8px; }
+            th { background-color: #eee; color: #000; -webkit-print-color-adjust: exact; }
+            .risk-high { background-color: #e74c3c !important; -webkit-print-color-adjust: exact; }
+            .risk-med { background-color: #f39c12 !important; -webkit-print-color-adjust: exact; }
+            .risk-low { background-color: #2ecc71 !important; -webkit-print-color-adjust: exact; }
+            .report-header { padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #000; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="report-header">
+        <div class="logo-section">
+            <img id="company_logo" class="logo-preview" src="" alt="Company Logo">
+            <input type="file" id="logo_upload" accept="image/*" class="no-print" style="font-size: 12px; width: 100%;">
+            <small class="no-print" style="color: #666; margin-top: 4px;">*รองรับ PNG, JPG</small>
+        </div>
+        <div class="title-section">
+            <h1>แบบการประเมินความเสี่ยงสุขภาพของลูกจ้างในกรณีใช้สารเคมีอันตราย</h1>
+            <p class="subtitle">อ้างอิง คู่มือการประเมินความเสี่ยงสุขภาพลูกจ้างในกรณีใช้สารเคมีอันตราย สสปท. 2-4-02-01-00-2564</p>
+        </div>
+        <div class="spacer"></div>
+    </div>
+
+    <div class="card">
+        <h4>ข้อมูลสถานประกอบกิจการ</h4>
+        <div class="grid-3">
+            <div class="form-group"><label>ชื่อสถานประกอบกิจการ</label><input type="text" id="comp_name" value="พิพม์ชื่อบริษัท/หน่วยงาน"></div>
+            <div class="form-group"><label>พื้นที่ / หน่วยงาน / แผนกการทำงาน</label><input type="text" id="dept_name" value="ระบุแผนกที่ประเมิน"></div>
+            <div class="form-group"><label>กลุ่มที่สัมผัสคล้ายกัน (SEGs)</label><input type="text" id="seg_name" placeholder="เช่น กลุ่มงานห้องปฏิบัติการณ์"></div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group"><label>ชื่อผู้ประเมินความเสี่ยง</label><input type="text" id="assessor" placeholder="ระบุชื่อ-นามสกุล จป.วิชาชีพ"></div>
+            <div class="form-group"><label>วันที่ดำเนินการประเมิน</label><input type="date" id="assess_date"></div>
+            <div class="form-group"><label>ผู้รับรองความเสี่ยง</label><input type="text" id="approver" placeholder="ระบุชื่อผู้จัดการ / นายจ้าง"></div>
+        </div>
+    </div>
+
+    <div class="card no-print" style="border-top: 4px solid var(--info); background-color: #fafbfc;">
+        <h4>ระบุพารามิเตอร์การตรวจประเมิน (มาตรฐาน สสปท.)</h4>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>1. ชื่อสารเคมีอันตราย</label>
+                <input type="text" id="chem_name" placeholder="เช่น Toluene, กรดซัลฟิวริก">
+            </div>
+            <div class="form-group">
+                <label>2. ตำแหน่งงาน / กิจกรรม</label>
+                <input type="text" id="job_title" placeholder="เช่น ผสมสาร, ถ่ายเทสาร">
+            </div>
+            <div class="form-group">
+                <label>3. ประเภทผลกระทบต่อสุขภาพ</label>
+                <select id="health_effect">
+                    <option value="ความเป็นพิษเฉียบพลัน">1. ความเป็นพิษเฉียบพลัน</option>
+                    <option value="การกัดกร่อนและระคายเคืองต่อผิวหนัง">2. การกัดกร่อนและระคายเคืองต่อผิวหนัง</option>
+                    <option value="การทำลายดวงตาอย่างรุนแรงและการระคายเคืองต่อดวงตา">3. การทำลายดวงตาอย่างรุนแรงและระคายเคืองตา</option>
+                    <option value="การทำให้ไวต่อการกระตุ้นอาการแพ้ต่อระบบทางเดินหายใจหรือผิวหนัง">4. การทำให้ไวต่อการกระตุ้นอาการแพ้ฯ</option>
+                    <option value="การก่อให้เกิดการกลายพันธุ์ของเซลล์สืบพันธุ์">5. การก่อให้เกิดการกลายพันธุ์ของเซลล์สืบพันธุ์</option>
+                    <option value="การก่อมะเร็ง">6. การก่อมะเร็ง</option>
+                    <option value="ความเป็นพิษต่อระบบสืบพันธุ์">7. ความเป็นพิษต่อระบบสืบพันธุ์</option>
+                    <option value="ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสครั้งเดียว">8. พิษต่ออวัยวะเป้าหมายฯ (สัมผัสครั้งเดียว)</option>
+                    <option value="ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสซ้ำ">9. พิษต่ออวัยวะเป้าหมายฯ (สัมผัสซ้ำ)</option>
+                    <option value="ความเป็นอันตรายจากการสำลัก">10. ความเป็นอันตรายจากการสำลัก</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>4. รหัสความเป็นอันตราย GHS (H-Statement)</label>
+                <select id="h_statement" onchange="runLiveLogic()">
+                    <option value="">-- กรุณาเลือกรหัส H-Code ตาม SDS --</option>
+                    <optgroup label="ระดับอันตราย 5 (ร้ายแรงมากที่สุด)">
+                        <option value="H330">H330: ตายเมื่อสูดดม</option>
+                        <option value="H300">H300: ตายเมื่อกลืนกิน</option>
+                        <option value="H310">H310: ตายเมื่อสัมผัสผิวหนัง</option>
+                        <option value="H340">H340: อาจก่อให้เกิดความผิดปกติทางพันธุกรรม</option>
+                        <option value="H350">H350: อาจก่อให้เกิดมะเร็ง</option>
+                        <option value="H360">H360: อาจเกิดอันตรายต่อการเจริญพันธุ์หรือทารกในครรภ์</option>
+                        <option value="H370">H370: ทำลายอวัยวะเมื่อรับสัมผัส</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 4 (ร้ายแรงมาก)">
+                        <option value="H331">H331: เป็นพิษเมื่อสูดดม</option>
+                        <option value="H301">H301: เป็นพิษเมื่อกลืนกิน</option>
+                        <option value="H311">H311: เป็นพิษเมื่อสัมผัสผิวหนัง</option>
+                        <option value="H341">H341: สงสัยว่าอาจก่อให้เกิดความผิดปกติทางพันธุกรรม</option>
+                        <option value="H351">H351: สงสัยว่าอาจก่อให้เกิดมะเร็ง</option>
+                        <option value="H361">H361: สงสัยว่าอาจเกิดอันตรายต่อการเจริญพันธุ์ฯ</option>
+                        <option value="H371">H371: อาจทำลายอวัยวะ</option>
+                        <option value="H372">H372: ทำลายอวัยวะเมื่อรับสัมผัสเป็นเวลานานหรือซ้ำๆ</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 3 (ร้ายแรง)">
+                        <option value="H332">H332: เป็นอันตรายเมื่อสูดดม</option>
+                        <option value="H302">H302: เป็นอันตรายเมื่อกลืนกิน</option>
+                        <option value="H312">H312: เป็นอันตรายเมื่อสัมผัสผิวหนัง</option>
+                        <option value="H304">H304: อาจเป็นอันตรายถึงตายเมื่อกลืนกินและผ่านเข้าไปในทางเดินหายใจ</option>
+                        <option value="H314">H314: ผิวหนังไหม้อย่างรุนแรงและทำลายดวงตา</option>
+                        <option value="H317">H317: อาจทำให้ผิวหนังเกิดการแพ้</option>
+                        <option value="H318">H318: ทำลายดวงตาอย่างรุนแรง</option>
+                        <option value="H334">H334: อาจก่อให้เกิดการแพ้หรืออาการหอบหืดเมื่อสูดดม</option>
+                        <option value="H335">H335: อาจระคายเคืองต่อทางเดินหายใจ</option>
+                        <option value="H373">H373: อาจทำลายอวัยวะเมื่อรับสัมผัสเป็นเวลานานหรือซ้ำๆ</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 2 (ปานกลาง)">
+                        <option value="H303">H303: อาจเป็นอันตรายเมื่อกลืนกิน</option>
+                        <option value="H313">H313: อาจเป็นอันตรายเมื่อสัมผัสผิวหนัง</option>
+                        <option value="H333">H333: อาจเป็นอันตรายเมื่อสูดดม</option>
+                        <option value="H305">H305: อาจเป็นอันตรายเมื่อกลืนกินและผ่านเข้าไปในทางเดินหายใจเมื่ออาเจียน</option>
+                        <option value="H315">H315: ระคายเคืองผิวหนังมาก</option>
+                        <option value="H319">H319: ระคายเคืองดวงตาอย่างรุนแรง</option>
+                        <option value="H362">H362: อาจเกิดอันตรายต่อทารกที่เลี้ยงด้วยนมแม่</option>
+                    </optgroup>
+                    <optgroup label="ระดับอันตราย 1 (น้อย)">
+                        <option value="H316">H316: ระคายเคืองผิวหนังเล็กน้อย</option>
+                        <option value="H320">H320: ระคายเคืองดวงตา</option>
+                        <option value="H336">H336: อาจทำให้ง่วงซึมหรือเวียนศีรษะ</option>
+                    </optgroup>
+                </select>
+                <div id="ghs_classification_badge"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>5. ระดับความถี่สัมผัส (FR) [ตาราง 7-1]</label>
+                <select id="fr_rate" onchange="runLiveLogic()">
+                    <option value="1">ระดับ 1: นาน ๆ ครั้ง (สัมผัสปีละ 1 ครั้ง)</option>
+                    <option value="2">ระดับ 2: ไม่บ่อย (สัมผัสปีละ 2 ถึง 3 ครั้ง)</option>
+                    <option value="3">ระดับ 3: ค่อนข้างบ่อย (สัมผัสเดือนละ 2 ถึง 3 ครั้ง)</option>
+                    <option value="4">ระดับ 4: บ่อย (สัมผัส 2 ถึง 4 ชั่วโมง ต่อเนื่องใน 1 กะ)</option>
+                    <option value="5">ระดับ 5: ประจำ (สัมผัสต่อเนื่องกันตลอดทั้งกะ)</option>
+                </select>
+                <span id="fr_hint" class="hint-text"></span>
+            </div>
+            
+            <div class="form-group">
+                <label>6. ระดับระยะเวลาสัมผัส (DR) [ตาราง 7-2]</label>
+                <select id="dr_rate" onchange="runLiveLogic()">
+                    <option value="1">ระดับ 1: น้อยกว่า 12.5% (น้อยกว่า 1 ชม./กะ)</option>
+                    <option value="2">ระดับ 2: 12.5 - 25% (1-2 ชม./กะ)</option>
+                    <option value="3">ระดับ 3: 25 - 50% (2-4 ชม./กะ)</option>
+                    <option value="4">ระดับ 4: 50 - 87.5% (4-7 ชม./กะ)</option>
+                    <option value="5">ระดับ 5: มากกว่า 87.5% (มากกว่า 7 ชม./กะ)</option>
+                </select>
+                <span id="dr_hint" class="hint-text"></span>
+            </div>
+        </div>
+
+        <div id="mr_container" class="card" style="background-color: #fff; border: 1px solid #b8daff; padding: 15px; margin-bottom: 15px;">
+            <h5 style="margin-top:0; color:var(--info);">📊 การประเมินระดับสารเคมีหรือการกระจายตัว (MR)</h5>
+            
+            <div id="mr_inhalation_block" class="form-group">
+                <label>7. ระดับความเข้มข้นสารเคมีในบรรยากาศ (MR) [ตาราง 7-3 ทางการสูดดม]</label>
+                <select id="mr_rate" onchange="runLiveLogic()">
+                    <option value="1">ระดับ 1: ต่ำกว่า 10% ของ OEL-TWA</option>
+                    <option value="2">ระดับ 2: ต่ำกว่า 50% ของ OEL-TWA</option>
+                    <option value="3">ระดับ 3: ต่ำกว่า 75% ของ OEL-TWA</option>
+                    <option value="4">ระดับ 4: เท่ากับ 75% ถึง 100% ของ OEL-TWA</option>
+                    <option value="5">ระดับ 5: สูงกว่า 100% ของ OEL-TWA (รวมถึงสารที่เป็น OEL-STEL หรือ OEL-C)</option>
+                </select>
+            </div>
+
+            <div id="mr_dermal_block" style="display: none; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>7.1 ระดับการคงอยู่ของสารเคมี [ตาราง 7-5]</label>
+                    <select id="persistence_rate" onchange="runLiveLogic()">
+                        <option value="1">ระดับ 1 (ต่ำ): แขวนลอยเล็กน้อยปรากฏไม่นาน / ไม่ซึมซับบนเสื้อผ้า / ไม่ดูดซึม</option>
+                        <option value="2">ระดับ 2 (ปานกลาง): แขวนลอยปานกลาง / ซึมซับบนเสื้อผ้า / ดูดซึมผ่านเข้าสู่ร่างกาย</option>
+                        <option value="3">ระดับ 3 (สูง): แขวนลอยได้ดีกระจายตัวนาน / ซึมซับได้ดี / ดูดซึมผ่านร่างกายได้ดี</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>7.2 ระดับการดูดซึมเข้าสู่ร่างกาย [ตาราง 7-6]</label>
+                    <select id="absorption_rate" onchange="runLiveLogic()">
+                        <option value="1">ระดับ 1 (ต่ำ): พื้นที่สัมผัสจำกัด (ไม่เกิน 2%) / ไม่มีความเปลี่ยนแปลงของผิวหนัง</option>
+                        <option value="2">ระดับ 2 (ปานกลาง): พื้นที่สัมผัสบางส่วน (2-5%) / ระคายเคือง ผิวหนังแห้ง มีผื่นแดง</option>
+                        <option value="3">ระดับ 3 (สูง): พื้นที่สัมผัสครอบคลุมหลายบริเวณ (> 5%) / ระคายเคืองรุนแรง ผิวแห้งลอกแตก</option>
+                    </select>
+                </div>
+                <div style="grid-column: span 2; background: #eef7fa; padding: 10px; border-radius: 4px; font-size: 15px; color: var(--primary);">
+                    ℹ️ <b>ระดับ MR ทางผิวหนัง (ตาราง 7-4 อัตโนมัติ):</b> ระดับ <span id="calculated_dermal_mr" style="font-weight: bold; color: var(--danger); font-size: 18px;">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>8. ค่าปรับแก้ไขตามข้อกฎหมาย (ถ้ามี)</label>
+                <input type="number" id="mod_factor" value="0" min="0" max="2" onchange="runLiveLogic()">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label style="color: var(--primary);">ผลการประมวลผลความเสี่ยง (RR)</label>
+                <div id="live_status" style="font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; background: #eee; font-size: 17px; border: 1px solid #ddd;">
+                    กำลังรอข้อมูลพารามิเตอร์...
+                </div>
+            </div>
+        </div>
+
+        <div id="action_block" class="action-zone">
+            <h4>🚨 มาตรการควบคุมและจัดการความเสี่ยง (Hierarchy of Controls)</h4>
+            <div class="grid-2">
+                <div class="form-group"><label>1. การควบคุมทางวิศวกรรม (Engineering Controls)</label><input type="text" id="ctrl_eng" placeholder="เช่น ติดตั้งระบบระบายอากาศเฉพาะที่ (LEV)"></div>
+                <div class="form-group"><label>2. การควบคุมทางบริหารจัดการ (Administrative Controls)</label><input type="text" id="ctrl_admin" placeholder="เช่น สลับผลัดเปลี่ยนกะการทำงาน"></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>3. อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE)</label><input type="text" id="ctrl_ppe" placeholder="เช่น ถุงมือกันสารเคมี, หน้ากากกรองไอระเหย"></div>
+                <div class="form-group"><label>4. แผนงานการเฝ้าระวังสุขภาพ (Health Surveillance)</label><input type="text" id="ctrl_surv" placeholder="เช่น ตรวจตัวชี้วัดทางชีวภาพ (Biomarker)"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 15px;">
+            <button class="btn btn-success" onclick="pushDataToTable()">
+                <span style="font-size: 20px; margin-right: 8px;">+</span> บันทึกข้อมูลลงในตารางรายงาน
+            </button>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto; background: white; padding: 10px; border-radius: 8px;">
+        <h3 style="text-align: center; margin-bottom: 15px;">แบบการประเมินความเสี่ยงสุขภาพของลูกจ้างในกรณีใช้สารเคมีอันตราย</h3>
+        <table id="appendix_table">
+            <thead>
+                <tr>
+                    <th rowspan="2">สารเคมี / SEGs / งาน</th>
+                    <th colspan="2">การชี้บ่งอันตราย</th>
+                    <th>ลักษณะอันตราย</th>
+                    <th colspan="5">การประเมินการสัมผัสสารเคมี</th>
+                    <th colspan="2">ลักษณะความเสี่ยง</th>
+                    <th rowspan="2" class="no-print" style="width: 60px;">จัดการ</th>
+                </tr>
+                <tr>
+                    <th>ประเภทผลกระทบ</th>
+                    <th>รหัสอันตราย<br>(H-Code)</th>
+                    <th>ระดับอันตราย<br>(HR)</th>
+                    <th>ความถี่<br>(FR)</th>
+                    <th>ระยะเวลา<br>(DR)</th>
+                    <th>ความเข้มข้น<br>(MR)</th>
+                    <th>ค่าปรับ</th>
+                    <th>ระดับสัมผัส<br>(ER)</th>
+                    <th>ระดับความเสี่ยง<br>(RR)</th>
+                    <th>ระดับและมาตรการจัดการความเสี่ยง</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;" class="no-print">
+        <button class="btn" onclick="window.print()" style="background-color: #6c757d; font-size: 18px; padding: 12px 30px;">
+            🖨️ พิมพ์รายงาน  (PDF)
+        </button>
+    </div>
+</div>
+
+<script>
+    // สคริปต์จัดการการอัปโหลดโลโก้บริษัท (ทำงานฝั่ง Client 100%)
+    document.getElementById('logo_upload').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('company_logo');
+                img.src = e.target.result;
+                img.style.display = 'block'; // แสดงรูป
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    const ghsDatabase = {
+        "H330": { hr: 5, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H300": { hr: 5, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H310": { hr: 5, type: "acute", route: "dermal", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H340": { hr: 5, type: "chronic", route: "inhalation", effect: "การก่อให้เกิดการกลายพันธุ์ของเซลล์สืบพันธุ์" },
+        "H350": { hr: 5, type: "chronic", route: "inhalation", effect: "การก่อมะเร็ง" },
+        "H360": { hr: 5, type: "chronic", route: "inhalation", effect: "ความเป็นพิษต่อระบบสืบพันธุ์" },
+        "H370": { hr: 5, type: "acute", route: "inhalation", effect: "ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสครั้งเดียว" },
+        "H331": { hr: 4, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H301": { hr: 4, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H311": { hr: 4, type: "acute", route: "dermal", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H341": { hr: 4, type: "chronic", route: "inhalation", effect: "การก่อให้เกิดการกลายพันธุ์ของเซลล์สืบพันธุ์" },
+        "H351": { hr: 4, type: "chronic", route: "inhalation", effect: "การก่อมะเร็ง" },
+        "H361": { hr: 4, type: "chronic", route: "inhalation", effect: "ความเป็นพิษต่อระบบสืบพันธุ์" },
+        "H371": { hr: 4, type: "acute", route: "inhalation", effect: "ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสครั้งเดียว" },
+        "H372": { hr: 4, type: "chronic", route: "inhalation", effect: "ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสซ้ำ" },
+        "H332": { hr: 3, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H302": { hr: 3, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H312": { hr: 3, type: "acute", route: "dermal", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H304": { hr: 3, type: "acute", route: "inhalation", effect: "ความเป็นอันตรายจากการสำลัก" },
+        "H314": { hr: 3, type: "acute", route: "dermal", effect: "การกัดกร่อนและระคายเคืองต่อผิวหนัง" },
+        "H317": { hr: 3, type: "chronic", route: "dermal", effect: "การทำให้ไวต่อการกระตุ้นอาการแพ้ต่อระบบทางเดินหายใจหรือผิวหนัง" },
+        "H318": { hr: 3, type: "acute", route: "dermal", effect: "การทำลายดวงตาอย่างรุนแรงและการระคายเคืองต่อดวงตา" },
+        "H334": { hr: 3, type: "chronic", route: "inhalation", effect: "การทำให้ไวต่อการกระตุ้นอาการแพ้ต่อระบบทางเดินหายใจหรือผิวหนัง" },
+        "H335": { hr: 3, type: "acute", route: "inhalation", effect: "ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสครั้งเดียว" },
+        "H373": { hr: 3, type: "chronic", route: "inhalation", effect: "ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสซ้ำ" },
+        "H303": { hr: 2, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H313": { hr: 2, type: "acute", route: "dermal", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H333": { hr: 2, type: "acute", route: "inhalation", effect: "ความเป็นพิษเฉียบพลัน" },
+        "H305": { hr: 2, type: "acute", route: "inhalation", effect: "ความเป็นอันตรายจากการสำลัก" },
+        "H315": { hr: 2, type: "acute", route: "dermal", effect: "การกัดกร่อนและระคายเคืองต่อผิวหนัง" },
+        "H319": { hr: 2, type: "acute", route: "dermal", effect: "การทำลายดวงตาอย่างรุนแรงและการระคายเคืองต่อดวงตา" },
+        "H362": { hr: 2, type: "chronic", route: "inhalation", effect: "ความเป็นพิษต่อระบบสืบพันธุ์" },
+        "H316": { hr: 1, type: "acute", route: "dermal", effect: "การกัดกร่อนและระคายเคืองต่อผิวหนัง" },
+        "H320": { hr: 1, type: "acute", route: "dermal", effect: "การทำลายดวงตาอย่างรุนแรงและการระคายเคืองต่อดวงตา" },
+        "H336": { hr: 1, type: "acute", route: "inhalation", effect: "ความเป็นพิษต่ออวัยวะเป้าหมายอย่างเฉพาะเจาะจง จากการรับสัมผัสครั้งเดียว" }
+    };
+
+    const erMatrix = [
+        [0, 0, 0, 0, 0, 0], 
+        [0, 1, 1, 2, 3, 4], 
+        [0, 1, 2, 3, 4, 5], 
+        [0, 2, 3, 3, 4, 5], 
+        [0, 3, 4, 4, 5, 5], 
+        [0, 4, 5, 5, 5, 5]  
+    ];
+
+    // ตาราง 7-4: หาค่า MR ทางผิวหนัง (Matrix 3x3 จากตาราง 7-5 และ 7-6)
+    const dermalMrMatrix = [
+        [0, 0, 0, 0], 
+        [0, 1, 2, 3], // คงอยู่ 1
+        [0, 2, 3, 4], // คงอยู่ 2
+        [0, 3, 4, 5]  // คงอยู่ 3
+    ];
+
+    // ตาราง 8-1: Matrix คำนวณความเสี่ยง (RR)
+    const rrTableMatrix = [
+        [0,   0,   0,   0,   0,   0],
+        [0, 1.0, 1.4, 1.7, 2.0, 2.2], 
+        [0, 1.4, 2.0, 2.5, 2.8, 3.2], 
+        [0, 1.7, 2.5, 3.0, 3.5, 3.9], 
+        [0, 2.0, 2.8, 3.5, 4.0, 4.5], 
+        [0, 2.2, 3.2, 3.9, 4.5, 5.0]  
+    ];
+
+    function runLiveLogic() {
+        const hCode = document.getElementById("h_statement").value;
+        const frRateSelect = document.getElementById("fr_rate");
+        const drRateSelect = document.getElementById("dr_rate");
+        const healthEffectSelect = document.getElementById("health_effect");
+        const target = document.getElementById("live_status");
+
+        if (!hCode) {
+            target.innerHTML = "กรุณาเลือกรหัส H-Statement ด้านบน";
+            target.style.backgroundColor = "#eee";
+            target.style.color = "#333";
+            document.getElementById("action_block").style.display = "none";
+            document.getElementById("ghs_classification_badge").innerHTML = "";
+            return null;
+        }
+
+        const chemData = ghsDatabase[hCode];
+        const hr = chemData.hr;
+        const hazardType = chemData.type; 
+        const route = chemData.route;     
+
+        healthEffectSelect.value = chemData.effect;
+
+        document.getElementById("ghs_classification_badge").innerHTML = `
+            <span class="badge ${hazardType === 'acute' ? 'badge-acute' : 'badge-chronic'}">${hazardType === 'acute' ? 'เฉียบพลัน (Acute)' : 'เรื้อรัง (Chronic)'}</span>
+            <span class="badge ${route === 'inhalation' ? 'badge-inh' : 'badge-der'}">${route === 'inhalation' ? 'หายใจ (Inhalation)' : 'ผิวหนัง (Dermal)'}</span>
+        `;
+
+        let exposure_probability = 1;
+        if (hazardType === "acute") {
+            frRateSelect.disabled = false; drRateSelect.disabled = true;
+            frRateSelect.style.backgroundColor = "#fff"; drRateSelect.style.backgroundColor = "#e9ecef";
+            document.getElementById("fr_hint").className = "hint-text hint-active";
+            document.getElementById("dr_hint").className = "hint-text hint-inactive";
+            exposure_probability = parseInt(frRateSelect.value);
+        } else {
+            frRateSelect.disabled = true; drRateSelect.disabled = false;
+            frRateSelect.style.backgroundColor = "#e9ecef"; drRateSelect.style.backgroundColor = "#fff";
+            document.getElementById("fr_hint").className = "hint-text hint-inactive";
+            document.getElementById("dr_hint").className = "hint-text hint-active";
+            exposure_probability = parseInt(drRateSelect.value);
+        }
+
+        let mr = 1;
+        let mrDisplayDetail = "";
+        if (route === "inhalation") {
+            document.getElementById("mr_inhalation_block").style.display = "flex";
+            document.getElementById("mr_dermal_block").style.display = "none";
+            mr = parseInt(document.getElementById("mr_rate").value);
+            mrDisplayDetail = `ระดับ ${mr}`;
+        } else if (route === "dermal") {
+            document.getElementById("mr_inhalation_block").style.display = "none";
+            document.getElementById("mr_dermal_block").style.display = "grid";
+            
+            const p = parseInt(document.getElementById("persistence_rate").value);
+            const a = parseInt(document.getElementById("absorption_rate").value);
+            mr = dermalMrMatrix[p][a];
+            document.getElementById("calculated_dermal_mr").innerHTML = mr;
+            mrDisplayDetail = `ระดับ ${mr}`;
+        }
+
+        const mod = parseInt(document.getElementById("mod_factor").value) || 0;
+        let base_er = erMatrix[exposure_probability][mr];
+        let final_er = Math.min(5, base_er + mod);
+        
+        const rr = rrTableMatrix[hr][final_er];
+        
+        if (rr >= 1.7) {
+            document.getElementById("action_block").style.display = "block";
+            if (rr >= 4.5) {
+                target.innerHTML = `อันตราย (HR): ${hr} | สัมผัส (ER): ${final_er} | <b>ความเสี่ยง (RR): ${rr.toFixed(1)} [สีแดง: ไม่ยอมให้เกิดขึ้น]</b>`;
+                target.style.backgroundColor = "#e74c3c"; target.style.color = "white";
+                target.style.borderColor = "#c0392b";
+            } else {
+                target.innerHTML = `อันตราย (HR): ${hr} | สัมผัส (ER): ${final_er} | <b>ความเสี่ยง (RR): ${rr.toFixed(1)} [สีเหลือง: ยอมรับไม่ได้]</b>`;
+                target.style.backgroundColor = "#f1c40f"; target.style.color = "black";
+                target.style.borderColor = "#f39c12";
+            }
+        } else {
+            target.innerHTML = `อันตราย (HR): ${hr} | สัมผัส (ER): ${final_er} | <b>ความเสี่ยง (RR): ${rr.toFixed(1)} [สีเขียว: ยอมรับได้]</b>`;
+            target.style.backgroundColor = "#2ecc71"; target.style.color = "white";
+            target.style.borderColor = "#27ae60";
+            document.getElementById("action_block").style.display = "none";
+        }
+
+        return { hr, er: final_er, rr: rr.toFixed(1), hazardType, route, mrDisplayDetail, fr: frRateSelect.value, dr: drRateSelect.value, mod, effect: healthEffectSelect.options[healthEffectSelect.selectedIndex].text };
+    }
+
+    function pushDataToTable() {
+        const chem = document.getElementById("chem_name").value.trim();
+        const job = document.getElementById("job_title").value.trim();
+        const hCode = document.getElementById("h_statement").value;
+
+        if(!chem || !hCode) {
+            alert("⚠️ ข้อมูลไม่ครบถ้วน: กรุณากรอกชื่อสารเคมีและเลือกรหัส H-Statement ก่อนบันทึก");
+            return;
+        }
+
+        const res = runLiveLogic();
+        if(!res) return;
+
+        const engText = document.getElementById("ctrl_eng").value.trim();
+        const adminText = document.getElementById("ctrl_admin").value.trim();
+        const ppeText = document.getElementById("ctrl_ppe").value.trim();
+        const survText = document.getElementById("ctrl_surv").value.trim();
+
+        let managementText = "";
+        let rowColorClass = "";
+        const numericRR = parseFloat(res.rr);
+
+        if(numericRR >= 4.5) {
+            rowColorClass = "risk-high";
+            managementText = `<b>[ไม่ยอมให้เกิดขึ้น]</b> ต้องกำจัด/แก้ไขทันที:<br>` +
+                             `1. วิศวกรรม: ${engText || "หยุดทำงานทันที/ปรับปรุงระบบปิด"}<br>` +
+                             `2. บริหาร: ${adminText || "จำกัดพื้นที่ปฏิบัติงานเข้มงวด"}<br>` +
+                             `3. PPE: ${ppeText || "ชุดและอุปกรณ์ป้องกันระดับสูงสุด"}<br>` +
+                             `4. สุขภาพ: ${survText || "ตรวจสุขภาพเชิงรุกและเฝ้าระวังทันที"}`;
+        } else if (numericRR >= 1.7) {
+            rowColorClass = "risk-med";
+            managementText = `<b>[ยอมรับไม่ได้]</b> ต้องเพิ่มมาตรการควบคุม:<br>` +
+                             `1. วิศวกรรม: ${engText || "ติดตั้ง/ปรับปรุงระบบระบายอากาศ"}<br>` +
+                             `2. บริหาร: ${adminText || "จัดทำมาตรฐาน WI / ฝึกอบรมพนักงาน"}<br>` +
+                             `3. PPE: ${ppeText || "บังคับสวมใส่ PPE ตามมาตรฐาน SDS"}<br>` +
+                             `4. สุขภาพ: ${survText || "เฝ้าระวังและตรวจสุขภาพตามปัจจัยเสี่ยง"}`;
+        } else {
+            rowColorClass = "risk-low";
+            managementText = `<b>[ยอมรับได้]</b><br>คงมาตรการควบคุมความปลอดภัยเดิมไว้ตามมาตรฐานสถานประกอบการ`;
+        }
+
+        const tbody = document.getElementById("appendix_table").getElementsByTagName("tbody")[0];
+        const newRow = tbody.insertRow();
+
+        const displayFR = res.hazardType === "acute" ? `<b>${res.fr}</b>` : `-`;
+        const displayDR = res.hazardType === "chronic" ? `<b>${res.dr}</b>` : `-`;
+
+        newRow.innerHTML = `
+            <td><b>${chem}</b><br><small>${job}</small></td>
+            <td style="font-size:13px;">${res.effect}</td>
+            <td><strong>${hCode}</strong></td>
+            <td><strong>${res.hr}</strong></td>
+            <td>${displayFR}</td>
+            <td>${displayDR}</td>
+            <td>${res.mrDisplayDetail}</td>
+            <td>${res.mod > 0 ? '+'+res.mod : '-'}</td>
+            <td><strong>${res.er}</strong></td>
+            <td class="${rowColorClass}" style="font-size: 16px;"><b>${res.rr}</b></td>
+            <td style="text-align: left; font-size:13px; min-width: 260px; line-height: 1.4;">${managementText}</td>
+            <td class="no-print"><button onclick="this.closest('tr').remove();" class="btn btn-sm" style="background-color: var(--danger);">ลบ</button></td>
+        `;
+
+        // เคลียร์อินพุตหลังจากบันทึก
+        document.getElementById("chem_name").value = "";
+        document.getElementById("job_title").value = "";
+        document.getElementById("ctrl_eng").value = "";
+        document.getElementById("ctrl_admin").value = "";
+        document.getElementById("ctrl_ppe").value = "";
+        document.getElementById("ctrl_surv").value = "";
+        
+        // เลื่อนไปที่ตารางอย่างนุ่มนวล
+        document.getElementById("appendix_table").scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    // เซ็ตวันที่ปัจจุบัน
+    document.getElementById('assess_date').valueAsDate = new Date();
+</script>
+
+</body>
+</html>
